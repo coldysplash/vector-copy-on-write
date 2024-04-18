@@ -42,41 +42,48 @@ public:
     return *this;
   };
 
-  ~Vector() {
-    for (auto current = begin_; current != begin_ + size_; ++current) {
-      current->~T();
+  ~Vector() = default;
+
+  explicit Vector(size_type sizes)
+      : begin_(static_cast<T *>(operator new(sizeof(T) * sizes))), size_(sizes),
+        capacity_(sizes) {
+    for (size_t i = 0; i < size_; ++i) {
+      new (begin_.get() + i) T(0);
     }
-    operator delete(begin_);
-  };
+  }
 
-  // explicit Vector(size_type sizes)
-  //     : begin_(static_cast<T *>(operator new(sizeof(T) * sizes))),
-  //     size_(sizes),
-  //       capacity_(sizes) {}
-
-  // Vector(size_type size, const_reference value);
+  Vector(size_type size, const_reference value)
+      : begin_(static_cast<T *>(operator new(sizeof(T) * size))), size_(size),
+        capacity_(size) {
+    for (size_t i = 0; i < size_; ++i) {
+      new (begin_.get() + i) T(value);
+    }
+  }
 
   explicit Vector(std::initializer_list<T> items)
       : begin_(static_cast<T *>(operator new(sizeof(T) * items.size()))),
         size_(items.size()), capacity_(size_) {
-    std::uninitialized_move(items.begin(), items.end(), begin_);
+    std::uninitialized_move(items.begin(), items.end(), begin_.get());
   }
+
   //   Vector(iterator first, iterator end);
 
-  pointer begin() { return begin_; }
-  pointer end() { return begin_ + size_; }
+  // void push_back(const reference value) {}
+
+  pointer begin() { return begin_.get(); }
+  pointer end() { return begin_.get() + size_; }
   size_type size() const { return size_; }
   size_type capacity() const { return capacity_; }
 
 private:
-  void detach();
+  // void detach();
   void swap(Vector &obj) noexcept {
     obj.begin_ = this->begin_;
     obj.size_ = this->size_;
     obj.capacity_ = this->capacity_;
   }
 
-  pointer begin_ = nullptr;
+  std::shared_ptr<T> begin_ = nullptr;
   size_type size_ = 0;
   size_type capacity_ = 0;
 };
