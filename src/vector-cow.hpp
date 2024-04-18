@@ -47,16 +47,24 @@ public:
   explicit Vector(size_type sizes)
       : begin_(static_cast<T *>(operator new(sizeof(T) * sizes))), size_(sizes),
         capacity_(sizes) {
-    for (size_t i = 0; i < size_; ++i) {
-      new (begin_.get() + i) T(0);
+    try {
+      for (size_t i = 0; i < size_; ++i) {
+        new (begin_.get() + i) T(0);
+      }
+    } catch (const std::exception &e) {
+      throw;
     }
   }
 
   Vector(size_type size, const_reference value)
       : begin_(static_cast<T *>(operator new(sizeof(T) * size))), size_(size),
         capacity_(size) {
-    for (size_t i = 0; i < size_; ++i) {
-      new (begin_.get() + i) T(value);
+    try {
+      for (size_t i = 0; i < size_; ++i) {
+        new (begin_.get() + i) T(value);
+      }
+    } catch (const std::exception &e) {
+      throw;
     }
   }
 
@@ -66,14 +74,14 @@ public:
     std::uninitialized_move(items.begin(), items.end(), begin_.get());
   }
 
-  //   Vector(iterator first, iterator end);
+  // Vector(iterator first, iterator end);
 
   // void push_back(const reference value) {}
 
-  pointer begin() { return begin_.get(); }
-  pointer end() { return begin_.get() + size_; }
-  size_type size() const { return size_; }
-  size_type capacity() const { return capacity_; }
+  pointer begin() noexcept { return begin_.get(); }
+  pointer end() noexcept { return begin_.get() + size_; }
+  size_type size() const noexcept { return size_; }
+  size_type capacity() const noexcept { return capacity_; }
 
 private:
   // void detach();
