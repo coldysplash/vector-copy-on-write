@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <initializer_list>
 #include <memory>
+#include <stdexcept>
 #include <utility>
 
 namespace vector_cow {
@@ -105,6 +106,32 @@ public:
       return;
     }
     size_ = count;
+  }
+
+  reference operator[](size_type pos) {
+    if (begin_.use_count() > 1) {
+      detach();
+    }
+    return begin_.get()[pos];
+  }
+
+  const_reference operator[](size_type pos) const { return begin_.get()[pos]; }
+
+  reference at(size_type pos) {
+    if (pos >= size_) {
+      throw std::out_of_range("Out of range!");
+    }
+    if (begin_.use_count() > 1) {
+      detach();
+    }
+    return begin_.get()[pos];
+  }
+
+  const_reference at(size_type pos) const {
+    if (pos >= size_) {
+      throw std::out_of_range("Out of range!");
+    }
+    return begin_.get()[pos];
   }
 
   pointer begin() noexcept { return begin_.get(); }

@@ -40,6 +40,31 @@ TEST(test_vector, resize) {
   // }
 }
 
+TEST(test_vector, access_operator) {
+  {
+    vector_cow::Vector<int> v(4, 2);
+    v[2] = 4;
+    // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
+    //   std::cout << *it1 << '\n';
+    // }
+  }
+  {
+    const vector_cow::Vector<int> v(4, 2);
+    // std::cout << '\n' << v[2];
+  }
+}
+
+TEST(test_vector, access_at) {
+  {
+    vector_cow::Vector<int> v(4, 2);
+    v.at(2) = 4;
+    // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
+    //   std::cout << *it1 << '\n';
+    // }
+  }
+  { const vector_cow::Vector<int> v(4, 2); }
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
