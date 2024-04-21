@@ -26,9 +26,18 @@ TEST(test_vector, push_back) {
   vector_cow::Vector<int> expect{5, 5, 2};
   // ASSERT_EQ(v, expect);
 
-  for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
-    std::cout << *it1 << '\n';
-  }
+  // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
+  // std::cout << *it1 << '\n';
+  // }
+}
+
+TEST(test_vector, resize) {
+  vector_cow::Vector<int> v(2, 5);
+  v.resize(5);
+
+  // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
+  // std::cout << *it1 << '\n';
+  // }
 }
 
 int main(int argc, char **argv) {

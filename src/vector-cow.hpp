@@ -47,25 +47,13 @@ public:
   explicit Vector(size_type sizes)
       : begin_(static_cast<T *>(operator new(sizeof(T) * sizes))), size_(sizes),
         capacity_(sizes) {
-    try {
-      for (size_t i = 0; i < size_; ++i) {
-        new (begin_.get() + i) T(0);
-      }
-    } catch (const std::exception &e) {
-      throw;
-    }
+    create_objects(0, size_, 0);
   }
 
   Vector(size_type size, const_reference value)
       : begin_(static_cast<T *>(operator new(sizeof(T) * size))), size_(size),
         capacity_(size) {
-    try {
-      for (size_t i = 0; i < size_; ++i) {
-        new (begin_.get() + i) T(value);
-      }
-    } catch (const std::exception &e) {
-      throw;
-    }
+    create_objects(0, size_, value);
   }
 
   explicit Vector(std::initializer_list<T> items)
@@ -103,6 +91,22 @@ public:
     ++size_;
   }
 
+  void resize(size_type count) {
+    if (count > size_) {
+      if (count > capacity_) {
+        reserve(count);
+      }
+      create_objects(size_, count, 0);
+    } else if (count < size_) {
+      for (size_t i = size_; i > count; --i) {
+        begin_.get()[i].~T();
+      }
+    } else {
+      return;
+    }
+    size_ = count;
+  }
+
   pointer begin() noexcept { return begin_.get(); }
   pointer end() noexcept { return begin_.get() + size_; }
   size_type size() const noexcept { return size_; }
@@ -125,6 +129,20 @@ private:
     obj.begin_ = this->begin_;
     obj.size_ = this->size_;
     obj.capacity_ = this->capacity_;
+  }
+
+  void create_objects(size_t start, size_t end, value_type value) {
+    size_t current = start;
+    try {
+      for (; current < end; ++current) {
+        new (begin_.get() + current) T(value);
+      }
+    } catch (const std::exception &e) {
+      for (size_t i = 0; i < current; ++i) {
+        begin_.get()[i].~T();
+      }
+      throw;
+    }
   }
 
   std::shared_ptr<T> begin_ = nullptr;
