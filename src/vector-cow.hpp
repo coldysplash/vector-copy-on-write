@@ -143,9 +143,23 @@ public:
 
   bool empty() const noexcept { return (size_ == 0); }
 
+  void shrink_to_fit() {
+    std::shared_ptr<T> v_new(static_cast<T *>(operator new(sizeof(T) * size_)));
+    try {
+      for (size_t i = 0; i < size_; ++i) {
+        new (v_new.get() + i) T(*(begin_.get() + i));
+      }
+    } catch (const std::exception &e) {
+      throw;
+    }
+    begin_.swap(v_new);
+    capacity_ = size_;
+  }
+
 private:
   void detach() {
-    std::shared_ptr<T> v_new(static_cast<T *>(operator new(sizeof(T) * size_)));
+    std::shared_ptr<T> v_new(
+        static_cast<T *>(operator new(sizeof(T) * capacity_)));
     try {
       for (size_t i = 0; i < size_; ++i) {
         new (v_new.get() + i) T(*(begin_.get() + i));

@@ -72,6 +72,14 @@ TEST(test_vector, empty) {
   ASSERT_EQ(v.empty(), false);
 }
 
+TEST(test_vector, shrink_to_fit) {
+  vector_cow::Vector<int> v;
+  v.resize(100);
+  v.resize(50);
+  v.shrink_to_fit();
+  ASSERT_EQ(v.capacity(), 50);
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
