@@ -85,7 +85,9 @@ public:
     if (begin_.use_count() > 1 && size_ < capacity_) {
       detach();
     }
-    if (size_ == capacity_) {
+    if (size_ == 0) {
+      reserve(1);
+    } else if (size_ == capacity_) {
       reserve(size_ * 2);
     }
     new (begin_.get() + size_) T(value);
@@ -138,6 +140,8 @@ public:
   pointer end() noexcept { return begin_.get() + size_; }
   size_type size() const noexcept { return size_; }
   size_type capacity() const noexcept { return capacity_; }
+
+  bool empty() const noexcept { return (size_ == 0); }
 
 private:
   void detach() {

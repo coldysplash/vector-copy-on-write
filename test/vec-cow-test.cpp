@@ -21,9 +21,9 @@ TEST(test_vector, reserve) {
 }
 
 TEST(test_vector, push_back) {
-  vector_cow::Vector<int> v(2, 5);
+  vector_cow::Vector<int> v;
   v.push_back(2);
-  vector_cow::Vector<int> expect{5, 5, 2};
+  // vector_cow::Vector<int> expect{2};
   // ASSERT_EQ(v, expect);
 
   // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
@@ -63,6 +63,13 @@ TEST(test_vector, access_at) {
     // }
   }
   { const vector_cow::Vector<int> v(4, 2); }
+}
+
+TEST(test_vector, empty) {
+  vector_cow::Vector<int> v;
+  ASSERT_EQ(v.empty(), true);
+  v.push_back(2);
+  ASSERT_EQ(v.empty(), false);
 }
 
 int main(int argc, char **argv) {
