@@ -76,7 +76,32 @@ public:
 
   // Vector(iterator first, iterator end);
 
-  // void push_back(const reference value) {}
+  void reserve(size_type n) {
+    if (n <= capacity_) {
+      return;
+    }
+    std::shared_ptr<T> tmp(static_cast<T *>(operator new(sizeof(T) * n)));
+    try {
+      for (size_t i = 0; i < size_; ++i) {
+        new (tmp.get() + i) T(*(begin_.get() + i));
+      }
+    } catch (const std::exception &e) {
+      throw;
+    }
+    begin_.swap(tmp);
+    capacity_ = n;
+  }
+
+  void push_back(const_reference value) {
+    if (begin_.use_count() > 1 && size_ < capacity_) {
+      detach();
+    }
+    if (size_ == capacity_) {
+      reserve(size_ * 2);
+    }
+    new (begin_.get() + size_) T(value);
+    ++size_;
+  }
 
   pointer begin() noexcept { return begin_.get(); }
   pointer end() noexcept { return begin_.get() + size_; }
@@ -84,7 +109,18 @@ public:
   size_type capacity() const noexcept { return capacity_; }
 
 private:
-  // void detach();
+  void detach() {
+    std::shared_ptr<T> v_new(static_cast<T *>(operator new(sizeof(T) * size_)));
+    try {
+      for (size_t i = 0; i < size_; ++i) {
+        new (v_new.get() + i) T(*(begin_.get() + i));
+      }
+    } catch (const std::exception &e) {
+      throw;
+    }
+    begin_.swap(v_new);
+  }
+
   void swap(Vector &obj) noexcept {
     obj.begin_ = this->begin_;
     obj.size_ = this->size_;
