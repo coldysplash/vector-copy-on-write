@@ -145,26 +145,36 @@ public:
 
   void shrink_to_fit() {
     std::shared_ptr<T> v_new(static_cast<T *>(operator new(sizeof(T) * size_)));
+    size_t current = 0;
     try {
-      for (size_t i = 0; i < size_; ++i) {
-        new (v_new.get() + i) T(*(begin_.get() + i));
+      for (; current < size_; ++current) {
+        new (v_new.get() + current) T(*(begin_.get() + current));
       }
     } catch (const std::exception &e) {
+      for (size_t i = 0; i < current; ++i) {
+        begin_.get()[i].~T();
+      }
       throw;
     }
     begin_.swap(v_new);
     capacity_ = size_;
   }
 
+  // template <typename It> class Iterator {};
+
 private:
   void detach() {
     std::shared_ptr<T> v_new(
         static_cast<T *>(operator new(sizeof(T) * capacity_)));
+    size_t current = 0;
     try {
-      for (size_t i = 0; i < size_; ++i) {
-        new (v_new.get() + i) T(*(begin_.get() + i));
+      for (; current < size_; ++current) {
+        new (v_new.get() + current) T(*(begin_.get() + current));
       }
     } catch (const std::exception &e) {
+      for (size_t i = 0; i < current; ++i) {
+        begin_.get()[i].~T();
+      }
       throw;
     }
     begin_.swap(v_new);
