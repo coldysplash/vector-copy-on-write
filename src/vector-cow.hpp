@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <initializer_list>
+#include <iterator>
 #include <memory>
 #include <stdexcept>
 #include <utility>
@@ -136,8 +137,6 @@ public:
     return begin_.get()[pos];
   }
 
-  pointer begin() noexcept { return begin_.get(); }
-  pointer end() noexcept { return begin_.get() + size_; }
   size_type size() const noexcept { return size_; }
   size_type capacity() const noexcept { return capacity_; }
 
@@ -160,7 +159,119 @@ public:
     capacity_ = size_;
   }
 
-  // template <typename It> class Iterator {};
+  template <typename It> class Iterator {
+  public:
+    using difference_type = std::ptrdiff_t;
+    using value_type = It;
+    using reference = value_type &;
+    using pointer = value_type *;
+    using iterator_category = std::random_access_iterator_tag;
+
+    explicit Iterator(Vector::pointer arr) : arr_(arr) {}
+    auto &operator++() noexcept {
+      ++arr_;
+      return *this;
+    }
+    auto operator++(int) noexcept {
+      auto temp = *this;
+      ++(*this);
+      return temp;
+    }
+    auto &operator--() noexcept {
+      --arr_;
+      return *this;
+    }
+    auto operator--(int) noexcept {
+      auto temp = *this;
+      --(*this);
+      return temp;
+    }
+
+    reference operator*() const noexcept { return *arr_; }
+    pointer operator->() const noexcept { return arr_; }
+
+    bool operator==(const Iterator &other) const noexcept {
+      return arr_ == other.arr_;
+    }
+    bool operator!=(const Iterator &other) const noexcept {
+      return !(arr_ == other.arr_);
+    }
+    friend bool operator<(const Iterator &lhs, const Iterator &rhs) noexcept {
+      return (rhs - lhs > 0);
+    }
+    friend bool operator>(const Iterator &lhs, const Iterator &rhs) noexcept {
+      return rhs < lhs;
+    }
+    friend bool operator<=(const Iterator &lhs, const Iterator &rhs) noexcept {
+      return !(rhs < lhs);
+    }
+    friend bool operator>=(const Iterator &lhs, const Iterator &rhs) noexcept {
+      return !(lhs < rhs);
+    }
+
+    reference operator[](difference_type n) const { return *(arr_ + n); }
+    Iterator &operator+=(difference_type n) {
+      if (n >= 0)
+        while (n--)
+          ++arr_;
+      else
+        while (n++)
+          --arr_;
+      return *this;
+    }
+    Iterator &operator-=(difference_type n) { return *this += -n; }
+
+    friend Iterator operator+(Iterator it, difference_type n) {
+      return it += n;
+    }
+    friend Iterator operator+(difference_type n, Iterator it) { return it + n; }
+    friend Iterator operator-(Iterator it, difference_type n) {
+      it -= n;
+      return it;
+    }
+    friend difference_type operator-(const Iterator &lhs, const Iterator &rhs) {
+      return lhs.arr_ - rhs.arr_;
+    }
+
+  private:
+    Vector::pointer arr_;
+  };
+
+  using iterator = Iterator<value_type>;
+  using const_iterator = Iterator<const value_type>;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+
+  iterator begin() noexcept {
+    if (begin_.use_count() > 1) {
+      detach();
+    }
+    return iterator(begin_.get());
+  }
+  iterator end() noexcept {
+    if (begin_.use_count() > 1) {
+      detach();
+    }
+    return iterator(begin_.get() + size_);
+  }
+  const_iterator begin() const noexcept { return const_iterator(begin_.get()); }
+  const_iterator end() const noexcept {
+    return const_iterator(begin_.get() + size_);
+  }
+  const_iterator cbegin() const noexcept {
+    return const_iterator(begin_.get());
+  }
+  const_iterator cend() const noexcept {
+    return const_iterator(begin_.get() + size_);
+  }
+  reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+  reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+  const_reverse_iterator crbegin() const noexcept {
+    return const_reverse_iterator(cend());
+  }
+  const_reverse_iterator crend() const noexcept {
+    return const_reverse_iterator(cbegin());
+  }
 
 private:
   void detach() {
@@ -204,5 +315,12 @@ private:
   size_type size_ = 0;
   size_type capacity_ = 0;
 };
+
+template <typename T>
+inline bool operator==(const Vector<T> &lhs, const Vector<T> &rhs) {
+  return (
+      lhs.size() == rhs.size() &&
+      std::equal(lhs.begin(), lhs.end(), rhs.begin()));
+}
 
 } // namespace vector_cow

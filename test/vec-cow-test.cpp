@@ -5,13 +5,13 @@
 #include <iostream>
 #include <string>
 
-// TEST(test_vector, initializer_constructor) {
-//   vector_cow::Vector<std::string> v(2, "hello");
-//   for (auto it = v.begin(); it != v.end(); ++it) {
-//     std::cout << *it << ' ';
-//   }
-//   std::cout << '\n' << v.capacity() << ' ' << v.size() << '\n';
-// }
+TEST(test_vector, initializer_constructor) {
+  vector_cow::Vector<std::string> v{"hello", "hello"};
+  vector_cow::Vector<std::string> v_2(2, "hello");
+  ASSERT_EQ(v, v_2);
+  ASSERT_EQ(v.size(), 2);
+  ASSERT_EQ(v.capacity(), 2);
+}
 
 TEST(test_vector, reserve) {
   vector_cow::Vector<std::string> v(2, "hello");
@@ -23,30 +23,23 @@ TEST(test_vector, reserve) {
 TEST(test_vector, push_back) {
   vector_cow::Vector<int> v;
   v.push_back(2);
-  // vector_cow::Vector<int> expect{2};
-  // ASSERT_EQ(v, expect);
-
-  // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
-  // std::cout << *it1 << '\n';
-  // }
+  vector_cow::Vector<int> expect{2};
+  ASSERT_EQ(v, expect);
 }
 
 TEST(test_vector, resize) {
   vector_cow::Vector<int> v(2, 5);
   v.resize(5);
-
-  // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
-  // std::cout << *it1 << '\n';
-  // }
+  vector_cow::Vector<int> expect{5, 5, 0, 0, 0};
+  ASSERT_EQ(v, expect);
 }
 
 TEST(test_vector, access_operator) {
   {
-    vector_cow::Vector<int> v(4, 2);
+    vector_cow::Vector<int> v(3, 2);
     v[2] = 4;
-    // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
-    //   std::cout << *it1 << '\n';
-    // }
+    vector_cow::Vector<int> expect{2, 2, 4};
+    ASSERT_EQ(v, expect);
   }
   {
     const vector_cow::Vector<int> v(4, 2);
@@ -56,11 +49,10 @@ TEST(test_vector, access_operator) {
 
 TEST(test_vector, access_at) {
   {
-    vector_cow::Vector<int> v(4, 2);
+    vector_cow::Vector<int> v(3, 2);
     v.at(2) = 4;
-    // for (auto it1 = v.begin(); it1 != v.end(); ++it1) {
-    //   std::cout << *it1 << '\n';
-    // }
+    vector_cow::Vector<int> expect{2, 2, 4};
+    ASSERT_EQ(v, expect);
   }
   { const vector_cow::Vector<int> v(4, 2); }
 }
@@ -78,6 +70,49 @@ TEST(test_vector, shrink_to_fit) {
   v.resize(50);
   v.shrink_to_fit();
   ASSERT_EQ(v.capacity(), 50);
+}
+
+TEST(test_vector, iterator) {
+  using int_iterator = vector_cow::Vector<int>::iterator;
+
+  // +=, +
+  {
+    vector_cow::Vector<int> v{1, 2, 3, 4, 5, 6};
+    int_iterator it = v.begin() + 2;
+    it += 1;
+    ASSERT_EQ(*it, 4);
+  }
+
+  // -=, -
+  {
+    vector_cow::Vector<int> v{1, 2, 3, 4, 5, 6};
+    int_iterator it = v.end() - 2;
+    it -= 3;
+    ASSERT_EQ(*it, 2);
+
+    int_iterator it_2 = v.end();
+    std::ptrdiff_t res = it_2 - it;
+    ASSERT_EQ(res, 5);
+  }
+
+  //[]
+  {
+    vector_cow::Vector<int> v{1, 2, 3, 4, 5, 6};
+    int_iterator it = v.begin();
+    ASSERT_EQ(it[2], 3);
+    it[2] = 4;
+    ASSERT_EQ(it[2], 4);
+  }
+
+  // compare
+  {
+    vector_cow::Vector<int> v{1, 2, 3, 4, 5, 6};
+    int_iterator it = v.begin();
+    ASSERT_EQ((it == v.begin()), true);
+    ASSERT_EQ((it == v.end() - 1), false);
+    ASSERT_EQ((it < v.begin() + 2), true);
+    ASSERT_EQ((it + 4 > v.begin() + 2), true);
+  }
 }
 
 int main(int argc, char **argv) {
