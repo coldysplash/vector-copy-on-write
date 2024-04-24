@@ -134,7 +134,7 @@ public:
   };
 
   using iterator = Iterator<value_type>;
-  using const_iterator = Iterator<const value_type>;
+  using const_iterator = const Iterator<value_type>;
   using reverse_iterator = std::reverse_iterator<iterator>;
   using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -329,6 +329,49 @@ public:
       }
       data_.swap(tmp);
     }
+  }
+
+  iterator insert(const_iterator pos, const T &value) {
+    size_t idx = pos - cbegin();
+
+    if (pos == cend()) {
+      push_back(value);
+    } else {
+      push_back(0);
+      for (auto i = size(); i != idx; --i) {
+        data_->begin_[i] = data_->begin_[i - 1];
+      }
+      data_->begin_[idx] = value;
+    }
+
+    return begin() + idx;
+  }
+
+  // iterator insert( const_iterator pos, T&& value ); ??
+
+  iterator insert(const_iterator pos, size_type count, const T &value) {
+    if (count == 0) {
+      return pos;
+    }
+    size_t idx = pos - cbegin();
+
+    if (pos == cend()) {
+      for (size_t i = 0; i < count; ++i) {
+        push_back(value);
+      }
+    } else {
+      for (size_t i = 0; i < count; ++i) {
+        push_back(0);
+        for (auto j = size(); j != idx; --j) {
+          data_->begin_[j] = data_->begin_[j - 1];
+        }
+      }
+      for (size_t i = idx; i != idx + count; ++i) {
+        data_->begin_[i] = value;
+      }
+    }
+
+    return begin() + idx;
   }
 
   size_t count() const { return data_.use_count(); }

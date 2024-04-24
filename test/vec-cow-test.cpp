@@ -129,6 +129,35 @@ TEST(test_vector, iterator) {
   }
 }
 
+TEST(test_vector, insert_1) {
+  {
+    vector_cow::Vector<int> v{1, 2, 3, 4};
+    vector_cow::Vector<int>::iterator it = v.insert(v.cend(), 7);
+    ASSERT_EQ(*(it), 7);
+  }
+  {
+    vector_cow::Vector<int> v(2, 100);
+    auto it = v.begin();
+    v.insert(it + 1, 200);
+    ASSERT_EQ(v, (vector_cow::Vector<int>{100, 200, 100}));
+  }
+}
+
+TEST(test_vector, insert_2) {
+  {
+    vector_cow::Vector<int> v(2, 100);
+    auto it = v.end();
+    v.insert(it, 2, 200);
+    ASSERT_EQ(v, (vector_cow::Vector<int>{100, 100, 200, 200}));
+  }
+  {
+    vector_cow::Vector<int> v(2, 100);
+    auto it = v.begin();
+    it = v.insert(it, 2, 200);
+    ASSERT_EQ(v, (vector_cow::Vector<int>{200, 200, 100, 100}));
+  }
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
