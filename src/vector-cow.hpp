@@ -16,7 +16,7 @@ template <typename S> struct Storage {
     begin_ = static_cast<S *>(operator new(sizeof(S) * capacity_));
   }
   ~Storage() {
-    for (std::size_t i = 0; i < capacity_; ++i) {
+    for (std::size_t i = 0; i < size_; ++i) {
       begin_[i].~S();
     }
     operator delete(begin_);
@@ -86,9 +86,6 @@ public:
     }
   }
 
-  pointer begin() { return data_->begin_; }
-  pointer end() { return data_->begin_ + data_->size_; }
-
   explicit Vector(std::initializer_list<T> items)
       : data_(
             std::make_shared<Storage<value_type>>(items.size(), items.size())) {
@@ -107,8 +104,9 @@ public:
         }
       } catch (const std::exception &e) {
         for (size_t i = 0; i < current; ++i) {
-          data_->begin_[i].~T();
+          tmp->begin_[i].~T();
         }
+        operator delete(tmp->begin_);
         throw;
       }
       data_.swap(tmp);
@@ -160,162 +158,162 @@ public:
 
   const_reference operator[](size_type pos) const { return data_->begin_[pos]; }
 
-  // reference at(size_type pos) {
-  //   if (pos >= size_) {
-  //     throw std::out_of_range("Out of range!");
-  //   }
-  //   if (begin_.use_count() > 1) {
-  //     detach();
-  //   }
-  //   return begin_.get()[pos];
-  // }
+  reference at(size_type pos) {
+    if (pos >= size()) {
+      throw std::out_of_range("Out of range!");
+    }
+    if (data_.use_count() > 1) {
+      detach();
+    }
+    return data_->begin_[pos];
+  }
 
-  // const_reference at(size_type pos) const {
-  //   if (pos >= size_) {
-  //     throw std::out_of_range("Out of range!");
-  //   }
-  //   return begin_.get()[pos];
-  // }
+  const_reference at(size_type pos) const {
+    if (pos >= size()) {
+      throw std::out_of_range("Out of range!");
+    }
+    return data_->begin_[pos];
+  }
 
   size_type size() const noexcept { return data_->size_; }
   size_type capacity() const noexcept { return data_->capacity_; }
 
   bool empty() const noexcept { return (size() == 0); }
 
-  // void shrink_to_fit() {
-  //   std::shared_ptr<T> v_new(static_cast<T *>(operator new(sizeof(T) *
-  //   size_))); size_t current = 0; try {
-  //     for (; current < size_; ++current) {
-  //       new (v_new.get() + current) T(*(begin_.get() + current));
-  //     }
-  //   } catch (const std::exception &e) {
-  //     for (size_t i = 0; i < current; ++i) {
-  //       begin_.get()[i].~T();
-  //     }
-  //     throw;
-  //   }
-  //   begin_.swap(v_new);
-  //   capacity_ = size_;
-  // }
+  void shrink_to_fit() {
+    if (capacity() > size()) {
+      auto tmp = std::make_shared<Storage<value_type>>(size(), size());
+      size_t current = 0;
+      try {
+        for (; current < size(); ++current) {
+          new (tmp->begin_ + current) T(*(data_->begin_ + current));
+        }
+      } catch (const std::exception &e) {
+        for (size_t i = 0; i < current; ++i) {
+          tmp->begin_[i].~T();
+        }
+        operator delete(tmp->begin_);
+        throw;
+      }
+      data_.swap(tmp);
+    }
+  }
 
-  // template <typename It> class Iterator {
-  // public:
-  //   using difference_type = std::ptrdiff_t;
-  //   using value_type = It;
-  //   using reference = value_type &;
-  //   using pointer = value_type *;
-  //   using iterator_category = std::random_access_iterator_tag;
+  template <typename It> class Iterator {
+  public:
+    using difference_type = std::ptrdiff_t;
+    using value_type = It;
+    using reference = value_type &;
+    using pointer = value_type *;
+    using iterator_category = std::random_access_iterator_tag;
 
-  //   explicit Iterator(Vector::pointer arr) : arr_(arr) {}
-  //   auto &operator++() noexcept {
-  //     ++arr_;
-  //     return *this;
-  //   }
-  //   auto operator++(int) noexcept {
-  //     auto temp = *this;
-  //     ++(*this);
-  //     return temp;
-  //   }
-  //   auto &operator--() noexcept {
-  //     --arr_;
-  //     return *this;
-  //   }
-  //   auto operator--(int) noexcept {
-  //     auto temp = *this;
-  //     --(*this);
-  //     return temp;
-  //   }
+    explicit Iterator(Vector::pointer arr) : arr_(arr) {}
+    auto &operator++() noexcept {
+      ++arr_;
+      return *this;
+    }
+    auto operator++(int) noexcept {
+      auto temp = *this;
+      ++(*this);
+      return temp;
+    }
+    auto &operator--() noexcept {
+      --arr_;
+      return *this;
+    }
+    auto operator--(int) noexcept {
+      auto temp = *this;
+      --(*this);
+      return temp;
+    }
 
-  //   reference operator*() const noexcept { return *arr_; }
-  //   pointer operator->() const noexcept { return arr_; }
+    reference operator*() const noexcept { return *arr_; }
+    pointer operator->() const noexcept { return arr_; }
 
-  //   bool operator==(const Iterator &other) const noexcept {
-  //     return arr_ == other.arr_;
-  //   }
-  //   bool operator!=(const Iterator &other) const noexcept {
-  //     return !(arr_ == other.arr_);
-  //   }
-  //   friend bool operator<(const Iterator &lhs, const Iterator &rhs) noexcept
-  //   {
-  //     return (rhs - lhs > 0);
-  //   }
-  //   friend bool operator>(const Iterator &lhs, const Iterator &rhs) noexcept
-  //   {
-  //     return rhs < lhs;
-  //   }
-  //   friend bool operator<=(const Iterator &lhs, const Iterator &rhs) noexcept
-  //   {
-  //     return !(rhs < lhs);
-  //   }
-  //   friend bool operator>=(const Iterator &lhs, const Iterator &rhs) noexcept
-  //   {
-  //     return !(lhs < rhs);
-  //   }
+    bool operator==(const Iterator &other) const noexcept {
+      return arr_ == other.arr_;
+    }
+    bool operator!=(const Iterator &other) const noexcept {
+      return !(arr_ == other.arr_);
+    }
+    friend bool operator<(const Iterator &lhs, const Iterator &rhs) noexcept {
+      return (rhs - lhs > 0);
+    }
+    friend bool operator>(const Iterator &lhs, const Iterator &rhs) noexcept {
+      return rhs < lhs;
+    }
+    friend bool operator<=(const Iterator &lhs, const Iterator &rhs) noexcept {
+      return !(rhs < lhs);
+    }
+    friend bool operator>=(const Iterator &lhs, const Iterator &rhs) noexcept {
+      return !(lhs < rhs);
+    }
 
-  //   reference operator[](difference_type n) const { return *(arr_ + n); }
-  //   Iterator &operator+=(difference_type n) {
-  //     if (n >= 0)
-  //       while (n--)
-  //         ++arr_;
-  //     else
-  //       while (n++)
-  //         --arr_;
-  //     return *this;
-  //   }
-  //   Iterator &operator-=(difference_type n) { return *this += -n; }
+    reference operator[](difference_type n) const { return *(arr_ + n); }
+    Iterator &operator+=(difference_type n) {
+      if (n >= 0)
+        while (n--)
+          ++arr_;
+      else
+        while (n++)
+          --arr_;
+      return *this;
+    }
+    Iterator &operator-=(difference_type n) { return *this += -n; }
 
-  //   friend Iterator operator+(Iterator it, difference_type n) {
-  //     return it += n;
-  //   }
-  //   friend Iterator operator+(difference_type n, Iterator it) { return it +
-  //   n; } friend Iterator operator-(Iterator it, difference_type n) {
-  //     it -= n;
-  //     return it;
-  //   }
-  //   friend difference_type operator-(const Iterator &lhs, const Iterator
-  //   &rhs) {
-  //     return lhs.arr_ - rhs.arr_;
-  //   }
+    friend Iterator operator+(Iterator it, difference_type n) {
+      return it += n;
+    }
+    friend Iterator operator+(difference_type n, Iterator it) { return it + n; }
+    friend Iterator operator-(Iterator it, difference_type n) {
+      it -= n;
+      return it;
+    }
+    friend difference_type operator-(const Iterator &lhs, const Iterator &rhs) {
+      return lhs.arr_ - rhs.arr_;
+    }
 
-  // private:
-  //   Vector::pointer arr_;
-  // };
+  private:
+    Vector::pointer arr_;
+  };
 
-  // using iterator = Iterator<value_type>;
-  // using const_iterator = Iterator<const value_type>;
-  // using reverse_iterator = std::reverse_iterator<iterator>;
-  // using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+  using iterator = Iterator<value_type>;
+  using const_iterator = Iterator<const value_type>;
+  using reverse_iterator = std::reverse_iterator<iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-  // iterator begin() noexcept {
-  //   if (begin_.use_count() > 1) {
-  //     detach();
-  //   }
-  //   return iterator(begin_.get());
-  // }
-  // iterator end() noexcept {
-  //   if (begin_.use_count() > 1) {
-  //     detach();
-  //   }
-  //   return iterator(begin_.get() + size_);
-  // }
-  // const_iterator begin() const noexcept { return
-  // const_iterator(begin_.get()); } const_iterator end() const noexcept {
-  //   return const_iterator(begin_.get() + size_);
-  // }
-  // const_iterator cbegin() const noexcept {
-  //   return const_iterator(begin_.get());
-  // }
-  // const_iterator cend() const noexcept {
-  //   return const_iterator(begin_.get() + size_);
-  // }
-  // reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
-  // reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
-  // const_reverse_iterator crbegin() const noexcept {
-  //   return const_reverse_iterator(cend());
-  // }
-  // const_reverse_iterator crend() const noexcept {
-  //   return const_reverse_iterator(cbegin());
-  // }
+  iterator begin() noexcept {
+    if (data_.use_count() > 1) {
+      detach();
+    }
+    return iterator(data_->begin_);
+  }
+  iterator end() noexcept {
+    if (data_.use_count() > 1) {
+      detach();
+    }
+    return iterator(data_->begin_ + size());
+  }
+  const_iterator begin() const noexcept {
+    return const_iterator(data_->begin_);
+  }
+  const_iterator end() const noexcept {
+    return const_iterator(data_->begin_ + size());
+  }
+  const_iterator cbegin() const noexcept {
+    return const_iterator(data_->begin_);
+  }
+  const_iterator cend() const noexcept {
+    return const_iterator(data_->begin_ + size());
+  }
+  reverse_iterator rbegin() noexcept { return reverse_iterator(end()); }
+  reverse_iterator rend() noexcept { return reverse_iterator(begin()); }
+  const_reverse_iterator crbegin() const noexcept {
+    return const_reverse_iterator(cend());
+  }
+  const_reverse_iterator crend() const noexcept {
+    return const_reverse_iterator(cbegin());
+  }
 
   size_t count() const { return data_.use_count(); }
 
@@ -329,8 +327,9 @@ private:
       }
     } catch (const std::exception &e) {
       for (size_t i = 0; i < current; ++i) {
-        data_->begin_[i].~T();
+        tmp->begin_[i].~T();
       }
+      operator delete(tmp->begin_);
       throw;
     }
     data_.swap(tmp);
@@ -341,11 +340,11 @@ private:
   std::shared_ptr<Storage<value_type>> data_;
 };
 
-// template <typename T>
-// inline bool operator==(const Vector<T> &lhs, const Vector<T> &rhs) {
-//   return (
-//       lhs.size() == rhs.size() &&
-//       std::equal(lhs.begin(), lhs.end(), rhs.begin()));
-// }
+template <typename T>
+inline bool operator==(const Vector<T> &lhs, const Vector<T> &rhs) {
+  return (
+      lhs.size() == rhs.size() &&
+      std::equal(lhs.begin(), lhs.end(), rhs.begin()));
+}
 
 } // namespace vector_cow
