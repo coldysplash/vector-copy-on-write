@@ -54,151 +54,7 @@ public:
 
   ~Vector() = default;
 
-  explicit Vector(size_type size)
-      : data_(std::make_shared<Storage<value_type>>(size, size)) {
-    size_t current = 0;
-    try {
-      for (; current < size; ++current) {
-        new (data_->begin_ + current) T(0);
-      }
-    } catch (const std::exception &e) {
-      for (size_t i = 0; i < current; ++i) {
-        data_->begin_[i].~T();
-        operator delete(data_->begin_);
-      }
-      throw;
-    }
-  }
-
-  Vector(size_type size, const_reference value)
-      : data_(std::make_shared<Storage<value_type>>(size, size)) {
-    size_t current = 0;
-    try {
-      for (; current < size; ++current) {
-        new (data_->begin_ + current) T(value);
-      }
-    } catch (const std::exception &e) {
-      for (size_t i = 0; i < current; ++i) {
-        data_->begin_[i].~T();
-        operator delete(data_->begin_);
-      }
-      throw;
-    }
-  }
-
-  explicit Vector(std::initializer_list<T> items)
-      : data_(
-            std::make_shared<Storage<value_type>>(items.size(), items.size())) {
-    std::uninitialized_move(items.begin(), items.end(), data_->begin_);
-  }
-
-  // // Vector(iterator first, iterator end);
-
-  void reserve(size_type new_capa) {
-    if (new_capa > capacity()) {
-      auto tmp = std::make_shared<Storage<value_type>>(size(), new_capa);
-      size_t current = 0;
-      try {
-        for (; current < size(); ++current) {
-          new (tmp->begin_ + current) T(*(data_->begin_ + current));
-        }
-      } catch (const std::exception &e) {
-        for (size_t i = 0; i < current; ++i) {
-          tmp->begin_[i].~T();
-        }
-        operator delete(tmp->begin_);
-        throw;
-      }
-      data_.swap(tmp);
-    }
-  }
-
-  void push_back(const_reference value) {
-    if (data_.use_count() > 1 && size() < capacity()) {
-      detach();
-    }
-    if (size() == 0) {
-      reserve(1);
-    } else if (size() == capacity()) {
-      reserve(size() * 2);
-    }
-    try {
-      new (data_->begin_ + size()) T(value);
-    } catch (const std::exception &e) {
-      data_->begin_[size()].~T();
-      throw;
-    }
-    ++data_->size_;
-  }
-
-  void resize(size_type count) {
-    if (count > size()) {
-      if (count > capacity()) {
-        reserve(count);
-      }
-      for (size_t i = size(); i < count; ++i) {
-        push_back(0);
-      }
-    } else if (count < size()) {
-      for (size_t i = size(); i > count; --i) {
-        data_->begin_[i].~T();
-      }
-    } else {
-      return;
-    }
-    data_->size_ = count;
-  }
-
-  reference operator[](size_type pos) {
-    if (data_.use_count() > 1) {
-      detach();
-    }
-    return data_->begin_[pos];
-  }
-
-  const_reference operator[](size_type pos) const { return data_->begin_[pos]; }
-
-  reference at(size_type pos) {
-    if (pos >= size()) {
-      throw std::out_of_range("Out of range!");
-    }
-    if (data_.use_count() > 1) {
-      detach();
-    }
-    return data_->begin_[pos];
-  }
-
-  const_reference at(size_type pos) const {
-    if (pos >= size()) {
-      throw std::out_of_range("Out of range!");
-    }
-    return data_->begin_[pos];
-  }
-
-  size_type size() const noexcept { return data_->size_; }
-  size_type capacity() const noexcept { return data_->capacity_; }
-
-  bool empty() const noexcept { return (size() == 0); }
-
-  void shrink_to_fit() {
-    if (capacity() > size()) {
-      auto tmp = std::make_shared<Storage<value_type>>(size(), size());
-      size_t current = 0;
-      try {
-        for (; current < size(); ++current) {
-          new (tmp->begin_ + current) T(*(data_->begin_ + current));
-        }
-      } catch (const std::exception &e) {
-        for (size_t i = 0; i < current; ++i) {
-          tmp->begin_[i].~T();
-        }
-        operator delete(tmp->begin_);
-        throw;
-      }
-      data_.swap(tmp);
-    }
-  }
-
+  // Iterator
   template <typename It> class Iterator {
   public:
     using difference_type = std::ptrdiff_t;
@@ -313,6 +169,166 @@ public:
   }
   const_reverse_iterator crend() const noexcept {
     return const_reverse_iterator(cbegin());
+  }
+
+  explicit Vector(size_type size)
+      : data_(std::make_shared<Storage<value_type>>(size, size)) {
+    size_t current = 0;
+    try {
+      for (; current < size; ++current) {
+        new (data_->begin_ + current) T(0);
+      }
+    } catch (const std::exception &e) {
+      for (size_t i = 0; i < current; ++i) {
+        data_->begin_[i].~T();
+        operator delete(data_->begin_);
+      }
+      throw;
+    }
+  }
+
+  Vector(size_type size, const_reference value)
+      : data_(std::make_shared<Storage<value_type>>(size, size)) {
+    size_t current = 0;
+    try {
+      for (; current < size; ++current) {
+        new (data_->begin_ + current) T(value);
+      }
+    } catch (const std::exception &e) {
+      for (size_t i = 0; i < current; ++i) {
+        data_->begin_[i].~T();
+        operator delete(data_->begin_);
+      }
+      throw;
+    }
+  }
+
+  explicit Vector(std::initializer_list<T> items)
+      : data_(
+            std::make_shared<Storage<value_type>>(items.size(), items.size())) {
+    std::uninitialized_move(items.begin(), items.end(), data_->begin_);
+  }
+
+  Vector(iterator first, iterator end) {
+    size_t size = end - first;
+    data_ = std::make_shared<Storage<value_type>>(size, size);
+    size_t current = 0;
+    try {
+      for (; current < size; ++current, ++first) {
+        new (data_->begin_ + current) T(*first);
+      }
+    } catch (const std::exception &e) {
+      for (size_t i = 0; i < current; ++i) {
+        data_->begin_[i].~T();
+        operator delete(data_->begin_);
+      }
+      throw;
+    }
+  }
+
+  void reserve(size_type new_capa) {
+    if (new_capa > capacity()) {
+      auto tmp = std::make_shared<Storage<value_type>>(size(), new_capa);
+      size_t current = 0;
+      try {
+        for (; current < size(); ++current) {
+          new (tmp->begin_ + current) T(*(data_->begin_ + current));
+        }
+      } catch (const std::exception &e) {
+        for (size_t i = 0; i < current; ++i) {
+          tmp->begin_[i].~T();
+        }
+        operator delete(tmp->begin_);
+        throw;
+      }
+      data_.swap(tmp);
+    }
+  }
+
+  void push_back(const_reference value) {
+    if (data_.use_count() > 1 && size() < capacity()) {
+      detach();
+    }
+    if (size() == 0) {
+      reserve(1);
+    } else if (size() == capacity()) {
+      reserve(size() * 2);
+    }
+    try {
+      new (data_->begin_ + size()) T(value);
+    } catch (const std::exception &e) {
+      data_->begin_[size()].~T();
+      throw;
+    }
+    ++data_->size_;
+  }
+
+  void resize(size_type count) {
+    if (count > size()) {
+      if (count > capacity()) {
+        reserve(count);
+      }
+      for (size_t i = size(); i < count; ++i) {
+        push_back(0);
+      }
+    } else if (count < size()) {
+      for (size_t i = size(); i > count; --i) {
+        data_->begin_[i].~T();
+      }
+    } else {
+      return;
+    }
+    data_->size_ = count;
+  }
+
+  reference operator[](size_type pos) {
+    if (data_.use_count() > 1) {
+      detach();
+    }
+    return data_->begin_[pos];
+  }
+
+  const_reference operator[](size_type pos) const { return data_->begin_[pos]; }
+
+  reference at(size_type pos) {
+    if (pos >= size()) {
+      throw std::out_of_range("Out of range!");
+    }
+    if (data_.use_count() > 1) {
+      detach();
+    }
+    return data_->begin_[pos];
+  }
+
+  const_reference at(size_type pos) const {
+    if (pos >= size()) {
+      throw std::out_of_range("Out of range!");
+    }
+    return data_->begin_[pos];
+  }
+
+  size_type size() const noexcept { return data_->size_; }
+  size_type capacity() const noexcept { return data_->capacity_; }
+
+  bool empty() const noexcept { return (size() == 0); }
+
+  void shrink_to_fit() {
+    if (capacity() > size()) {
+      auto tmp = std::make_shared<Storage<value_type>>(size(), size());
+      size_t current = 0;
+      try {
+        for (; current < size(); ++current) {
+          new (tmp->begin_ + current) T(*(data_->begin_ + current));
+        }
+      } catch (const std::exception &e) {
+        for (size_t i = 0; i < current; ++i) {
+          tmp->begin_[i].~T();
+        }
+        operator delete(tmp->begin_);
+        throw;
+      }
+      data_.swap(tmp);
+    }
   }
 
   size_t count() const { return data_.use_count(); }

@@ -19,6 +19,12 @@ TEST(test_vector, size_constructor) {
   ASSERT_EQ(v, v_2);
 }
 
+TEST(test_vector, constructor_from_range) {
+  vector_cow::Vector<int> v{5, 6, 7, 8};
+  vector_cow::Vector<int> v_2(v.begin(), v.end());
+  ASSERT_EQ(v, v_2);
+}
+
 TEST(test_vector, reserve) {
   vector_cow::Vector<std::string> v;
   v.reserve(5);
