@@ -431,6 +431,38 @@ public:
     return begin() + idx;
   }
 
+  iterator erase(const_iterator pos) {
+    if (pos == cend()) {
+      return pos;
+    }
+    size_t idx = pos - cbegin();
+    size_t last = cend() - cbegin();
+    for (auto i = idx; i != size(); ++i) {
+      data_->begin_[i] = data_->begin_[i + 1];
+    }
+    data_->begin_[last].~T();
+    --data_->size_;
+    return cbegin() + idx;
+  }
+
+  iterator erase(const_iterator first, const_iterator last) {
+    if (first == last) {
+      return last;
+    }
+    size_t idx = first - cbegin();
+    size_t count = last - first;
+    int j = 0;
+    for (auto i = idx; i != size(); ++i, ++j) {
+      data_->begin_[i] = data_->begin_[i + count + j];
+    }
+
+    for (auto i = idx; i < count; ++i) {
+      data_->begin_[i].~T();
+    }
+    data_->size_ -= count;
+    return cbegin() + idx;
+  }
+
   size_t count() const { return data_.use_count(); }
 
 private:

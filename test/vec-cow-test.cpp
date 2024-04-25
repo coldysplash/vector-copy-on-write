@@ -188,6 +188,38 @@ TEST(test_vector, insert_4) {
   }
 }
 
+TEST(test_vector, erase) {
+  {
+    vector_cow::Vector<int> v{1, 2, 3};
+    auto it = v.erase(v.end() - 1);
+    ASSERT_EQ(it, v.end());
+    ASSERT_EQ(v, (vector_cow::Vector<int>{1, 2}));
+  }
+  {
+    vector_cow::Vector<int> v{1, 2, 3};
+    auto it = v.erase(v.end() - 2);
+    ASSERT_EQ(*it, 3);
+    ASSERT_EQ(v, (vector_cow::Vector<int>{1, 3}));
+  }
+}
+
+TEST(test_vector, erase_range) {
+  {
+    vector_cow::Vector<int> v{1, 2, 3, 4, 5};
+    auto it = v.erase(v.begin() + 1, v.end() - 1);
+    ASSERT_EQ(*it, 5);
+    ASSERT_EQ(v, (vector_cow::Vector<int>{1, 5}));
+  }
+  {
+    vector_cow::Vector<int> v{1, 2, 3, 4, 5};
+    auto it = v.erase(v.begin() + 1, v.end());
+    ASSERT_EQ(it, v.end());
+    ASSERT_EQ(v, (vector_cow::Vector<int>{1}));
+    ASSERT_EQ(v.size(), 1);
+    ASSERT_EQ(v.capacity(), 5);
+  }
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
