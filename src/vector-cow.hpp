@@ -362,9 +362,10 @@ public:
     } else {
       for (size_t i = 0; i < count; ++i) {
         push_back(0);
-        for (auto j = size(); j != idx; --j) {
-          data_->begin_[j] = data_->begin_[j - 1];
-        }
+      }
+      int i = -1;
+      for (size_t j = size(); j != idx; --j, ++i) {
+        data_->begin_[j] = data_->begin_[j - count + i];
       }
       for (size_t i = idx; i != idx + count; ++i) {
         data_->begin_[i] = value;
@@ -389,9 +390,10 @@ public:
     } else {
       for (size_t i = 0; i < count; ++i) {
         push_back(0);
-        for (auto j = size(); j != idx; --j) {
-          data_->begin_[j] = data_->begin_[j - 1];
-        }
+      }
+      int i = -1;
+      for (size_t j = size(); j != idx; --j, ++i) {
+        data_->begin_[j] = data_->begin_[j - count + i];
       }
       auto cur = first;
       for (size_t i = idx; i != idx + count; ++i, ++cur) {
@@ -416,9 +418,10 @@ public:
     } else {
       for (size_t i = 0; i < count; ++i) {
         push_back(0);
-        for (auto j = size(); j != idx; --j) {
-          data_->begin_[j] = data_->begin_[j - 1];
-        }
+      }
+      int i = -1;
+      for (size_t j = size(); j != idx; --j, ++i) {
+        data_->begin_[j] = data_->begin_[j - count + i];
       }
       auto cur = ilist.begin();
       for (size_t i = idx; i != idx + count; ++i, ++cur) {
