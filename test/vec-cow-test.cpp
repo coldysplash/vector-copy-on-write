@@ -158,6 +158,36 @@ TEST(test_vector, insert_2) {
   }
 }
 
+TEST(test_vector, insert_3) {
+  {
+    vector_cow::Vector<int> v(2, 100);
+    vector_cow::Vector<int> v_1(2, 200);
+    auto it = v.insert(v.end(), v_1.begin(), v_1.end());
+    ASSERT_EQ(*it, 200);
+    ASSERT_EQ(v, (vector_cow::Vector<int>{100, 100, 200, 200}));
+  }
+  {
+    vector_cow::Vector<int> v(2, 100);
+    vector_cow::Vector<int> v_1(2, 200);
+    v.insert(v.begin(), v_1.begin(), v_1.end());
+    ASSERT_EQ(v, (vector_cow::Vector<int>{200, 200, 100, 100}));
+  }
+}
+
+TEST(test_vector, insert_4) {
+  {
+    vector_cow::Vector<int> v(2, 100);
+    auto it = v.insert(v.end(), {200, 200});
+    ASSERT_EQ(*it, 200);
+    ASSERT_EQ(v, (vector_cow::Vector<int>{100, 100, 200, 200}));
+  }
+  {
+    vector_cow::Vector<int> v(2, 100);
+    v.insert(v.begin(), {200, 200});
+    ASSERT_EQ(v, (vector_cow::Vector<int>{200, 200, 100, 100}));
+  }
+}
+
 int main(int argc, char **argv) {
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

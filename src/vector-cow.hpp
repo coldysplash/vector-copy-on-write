@@ -347,7 +347,7 @@ public:
     return begin() + idx;
   }
 
-  // iterator insert( const_iterator pos, T&& value ); ??
+  // iterator insert(const_iterator pos, T&& value ); ??
 
   iterator insert(const_iterator pos, size_type count, const T &value) {
     if (count == 0) {
@@ -371,6 +371,60 @@ public:
       }
     }
 
+    return begin() + idx;
+  }
+
+  iterator insert(const_iterator pos, iterator first, iterator last) {
+    if (first == last) {
+      return pos;
+    }
+    size_t idx = pos - cbegin();
+    size_t count = last - first;
+
+    if (pos == cend()) {
+      auto cur = first;
+      for (size_t i = 0; i < count; ++i, ++cur) {
+        push_back(*cur);
+      }
+    } else {
+      for (size_t i = 0; i < count; ++i) {
+        push_back(0);
+        for (auto j = size(); j != idx; --j) {
+          data_->begin_[j] = data_->begin_[j - 1];
+        }
+      }
+      auto cur = first;
+      for (size_t i = idx; i != idx + count; ++i, ++cur) {
+        data_->begin_[i] = *cur;
+      }
+    }
+    return begin() + idx;
+  }
+
+  iterator insert(const_iterator pos, std::initializer_list<T> ilist) {
+    if (ilist.size() == 0) {
+      return pos;
+    }
+    size_t idx = pos - cbegin();
+    size_t count = ilist.size();
+
+    if (pos == cend()) {
+      auto cur = ilist.begin();
+      for (size_t i = 0; i < count; ++i, ++cur) {
+        push_back(*cur);
+      }
+    } else {
+      for (size_t i = 0; i < count; ++i) {
+        push_back(0);
+        for (auto j = size(); j != idx; --j) {
+          data_->begin_[j] = data_->begin_[j - 1];
+        }
+      }
+      auto cur = ilist.begin();
+      for (size_t i = idx; i != idx + count; ++i, ++cur) {
+        data_->begin_[i] = *cur;
+      }
+    }
     return begin() + idx;
   }
 
