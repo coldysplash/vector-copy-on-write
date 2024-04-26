@@ -137,8 +137,7 @@ TEST(test_vector, insert_1) {
   }
   {
     vector_cow::Vector<int> v(2, 100);
-    auto it = v.begin();
-    v.insert(it + 1, 200);
+    v.insert(v.begin() + 1, 200);
     ASSERT_EQ(v, (vector_cow::Vector<int>{100, 200, 100}));
   }
 }

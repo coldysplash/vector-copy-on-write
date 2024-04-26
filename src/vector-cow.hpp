@@ -360,18 +360,11 @@ public:
         push_back(value);
       }
     } else {
-      for (size_t i = 0; i < count; ++i) {
-        push_back(0);
-      }
-      int i = -1;
-      for (size_t j = size(); j != idx; --j, ++i) {
-        data_->begin_[j] = data_->begin_[j - count + i];
-      }
-      for (size_t i = idx; i != idx + count; ++i) {
-        data_->begin_[i] = value;
+      for (size_t i = 0; i != count; ++i) {
+        auto current_pos = begin() + idx;
+        insert(current_pos, value);
       }
     }
-
     return begin() + idx;
   }
 
@@ -388,16 +381,9 @@ public:
         push_back(*cur);
       }
     } else {
-      for (size_t i = 0; i < count; ++i) {
-        push_back(0);
-      }
-      int i = -1;
-      for (size_t j = size(); j != idx; --j, ++i) {
-        data_->begin_[j] = data_->begin_[j - count + i];
-      }
-      auto cur = first;
-      for (size_t i = idx; i != idx + count; ++i, ++cur) {
-        data_->begin_[i] = *cur;
+      for (size_t i = 0; i < count; ++i, ++first) {
+        auto current_pos = begin() + idx;
+        insert(current_pos, *first);
       }
     }
     return begin() + idx;
@@ -416,16 +402,10 @@ public:
         push_back(*cur);
       }
     } else {
-      for (size_t i = 0; i < count; ++i) {
-        push_back(0);
-      }
-      int i = -1;
-      for (size_t j = size(); j != idx; --j, ++i) {
-        data_->begin_[j] = data_->begin_[j - count + i];
-      }
-      auto cur = ilist.begin();
-      for (size_t i = idx; i != idx + count; ++i, ++cur) {
-        data_->begin_[i] = *cur;
+      auto item = ilist.begin();
+      for (size_t i = 0; i < count; ++i, ++item) {
+        auto current_pos = begin() + idx;
+        insert(current_pos, *item);
       }
     }
     return begin() + idx;
@@ -437,8 +417,8 @@ public:
     }
     size_t idx = pos - cbegin();
     size_t last = cend() - cbegin();
-    for (auto i = idx; i != size(); ++i) {
-      data_->begin_[i] = data_->begin_[i + 1];
+    for (auto item = pos; item != end() - 1; ++item) {
+      std::swap(*item, *(item + 1));
     }
     data_->begin_[last].~T();
     --data_->size_;
@@ -451,15 +431,9 @@ public:
     }
     size_t idx = first - cbegin();
     size_t count = last - first;
-    int j = 0;
-    for (auto i = idx; i != size(); ++i, ++j) {
-      data_->begin_[i] = data_->begin_[i + count + j];
+    for (size_t i = 0; i < count; ++i) {
+      erase(first);
     }
-
-    for (auto i = idx; i < count; ++i) {
-      data_->begin_[i].~T();
-    }
-    data_->size_ -= count;
     return cbegin() + idx;
   }
 
