@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <initializer_list>
+#include <iostream>
 #include <iterator>
 #include <memory>
 #include <stdexcept>
@@ -332,28 +333,26 @@ public:
   }
 
   iterator insert(const_iterator pos, const T &value) {
-    size_t idx = pos - cbegin();
+    const size_t idx = pos - cbegin();
 
     if (pos == cend()) {
       push_back(value);
     } else {
-      push_back(0);
-      for (auto i = size(); i != idx; --i) {
+      push_back(value);
+      for (auto i = size() - 1; i != idx; --i) {
         data_->begin_[i] = data_->begin_[i - 1];
       }
       data_->begin_[idx] = value;
     }
 
-    return begin() + idx;
+    return cbegin() + idx;
   }
-
-  // iterator insert(const_iterator pos, T&& value ); ??
 
   iterator insert(const_iterator pos, size_type count, const T &value) {
     if (count == 0) {
       return pos;
     }
-    size_t idx = pos - cbegin();
+    const size_t idx = pos - cbegin();
 
     if (pos == cend()) {
       for (size_t i = 0; i < count; ++i) {
@@ -372,8 +371,8 @@ public:
     if (first == last) {
       return pos;
     }
-    size_t idx = pos - cbegin();
-    size_t count = last - first;
+    const size_t idx = pos - cbegin();
+    const size_t count = last - first;
 
     if (pos == cend()) {
       auto cur = first;
@@ -393,8 +392,8 @@ public:
     if (ilist.size() == 0) {
       return pos;
     }
-    size_t idx = pos - cbegin();
-    size_t count = ilist.size();
+    const size_t idx = pos - cbegin();
+    const size_t count = ilist.size();
 
     if (pos == cend()) {
       auto cur = ilist.begin();
@@ -415,8 +414,8 @@ public:
     if (pos == cend()) {
       return pos;
     }
-    size_t idx = pos - cbegin();
-    size_t last = cend() - cbegin();
+    const size_t idx = pos - cbegin();
+    const size_t last = cend() - cbegin();
     for (auto item = pos; item != end() - 1; ++item) {
       std::swap(*item, *(item + 1));
     }
@@ -429,8 +428,8 @@ public:
     if (first == last) {
       return last;
     }
-    size_t idx = first - cbegin();
-    size_t count = last - first;
+    const size_t idx = first - cbegin();
+    const size_t count = last - first;
     for (size_t i = 0; i < count; ++i) {
       erase(first);
     }

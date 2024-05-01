@@ -25,6 +25,27 @@ TEST(test_vector, constructor_from_range) {
   ASSERT_EQ(v, v_2);
 }
 
+TEST(test_vector, detach) {
+  {
+    vector_cow::Vector<int> v{5, 6, 7, 8};
+    vector_cow::Vector<int> v_2(v);
+    ASSERT_EQ(v.count(), 2);
+    ASSERT_EQ(v_2.count(), 2);
+    v_2.push_back(3);
+    ASSERT_EQ(v.count(), 1);
+    ASSERT_EQ(v_2.count(), 1);
+  }
+  {
+    vector_cow::Vector<int> v{5, 6, 7, 8};
+    vector_cow::Vector<int> v_2(v);
+    ASSERT_EQ(v.count(), 2);
+    ASSERT_EQ(v_2.count(), 2);
+    v_2.insert(v_2.begin(), 3);
+    ASSERT_EQ(v.count(), 1);
+    ASSERT_EQ(v_2.count(), 1);
+  }
+}
+
 TEST(test_vector, reserve) {
   vector_cow::Vector<std::string> v;
   v.reserve(5);
@@ -139,6 +160,11 @@ TEST(test_vector, insert_1) {
     vector_cow::Vector<int> v(2, 100);
     v.insert(v.begin() + 1, 200);
     ASSERT_EQ(v, (vector_cow::Vector<int>{100, 200, 100}));
+  }
+  {
+    vector_cow::Vector<std::string> v(2, "hello");
+    v.insert(v.begin() + 1, "world");
+    ASSERT_EQ(v, (vector_cow::Vector<std::string>{"hello", "world", "hello"}));
   }
 }
 
