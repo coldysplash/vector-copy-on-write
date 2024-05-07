@@ -7,22 +7,6 @@
 #include <stdexcept>
 #include <utility>
 
-template <typename S> struct Storage {
-  S *begin_ = nullptr;
-  size_t size_ = 0;
-  size_t capacity_ = 0;
-
-  Storage(size_t size, size_t capa) : size_(size), capacity_(capa) {
-    begin_ = static_cast<S *>(operator new(sizeof(S) * capacity_));
-  }
-  ~Storage() {
-    for (std::size_t i = 0; i < size_; ++i) {
-      begin_[i].~S();
-    }
-    operator delete(begin_);
-  }
-};
-
 namespace vector_cow {
 
 template <typename T> class Vector {
@@ -465,6 +449,22 @@ private:
   }
 
   void swap(Vector &obj) noexcept { obj.data_ = this->data_; }
+
+  template <typename S> struct Storage {
+    S *begin_ = nullptr;
+    size_t size_ = 0;
+    size_t capacity_ = 0;
+
+    Storage(size_t size, size_t capa) : size_(size), capacity_(capa) {
+      begin_ = static_cast<S *>(operator new(sizeof(S) * capacity_));
+    }
+    ~Storage() {
+      for (std::size_t i = 0; i < size_; ++i) {
+        begin_[i].~S();
+      }
+      operator delete(begin_);
+    }
+  };
 
   std::shared_ptr<Storage<value_type>> data_;
 };
