@@ -268,8 +268,17 @@ public:
       if (count > capacity()) {
         reserve(count);
       }
-      for (size_t i = size(); i < count; ++i) {
-        push_back(0);
+      size_t current = size();
+      try {
+        for (; current < count; ++current) {
+          new (data_->begin_ + current) T();
+        }
+      } catch (const std::exception &e) {
+        for (size_t i = 0; i < current; ++i) {
+          data_->begin_[i].~T();
+          operator delete(data_->begin_);
+        }
+        throw;
       }
     } else if (count < size()) {
       for (size_t i = size(); i > count; --i) {

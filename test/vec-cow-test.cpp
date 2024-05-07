@@ -67,6 +67,10 @@ TEST(test_vector, resize) {
   v.resize(0);
   ASSERT_EQ(v.size(), 0);
   ASSERT_EQ(v.capacity(), 5);
+  {
+    vector_cow::Vector<std::string> v(2, "hello");
+    v.resize(5);
+  }
 }
 
 TEST(test_vector, access_operator) {
