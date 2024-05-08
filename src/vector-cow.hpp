@@ -19,25 +19,6 @@ public:
   using pointer = value_type *;
   using const_pointer = const value_type *;
 
-  Vector() { data_ = std::make_shared<Storage<value_type>>(0, 0); }
-  Vector(const Vector &other) : data_(other.data_) {}
-  Vector(Vector &&other) : data_(other.data_) { other.data_.reset(); }
-
-  Vector &operator=(const Vector &other) {
-    if (this != &other) {
-      other.data_ = this->data_;
-    }
-    return *this;
-  }
-
-  Vector &operator=(Vector &&other) {
-    Vector tmp(std::move(other));
-    tmp.swap(*this);
-    return *this;
-  };
-
-  ~Vector() = default;
-
   // Iterator
   template <typename It> class Iterator {
   public:
@@ -154,6 +135,8 @@ public:
   const_reverse_iterator crend() const noexcept {
     return const_reverse_iterator(cbegin());
   }
+
+  Vector() { data_ = std::make_shared<Storage<value_type>>(0, 0); }
 
   explicit Vector(size_type size)
       : data_(std::make_shared<Storage<value_type>>(size, size)) {
@@ -447,8 +430,6 @@ private:
     }
     data_.swap(tmp);
   }
-
-  void swap(Vector &obj) noexcept { obj.data_ = this->data_; }
 
   template <typename S> struct Storage {
     S *begin_ = nullptr;

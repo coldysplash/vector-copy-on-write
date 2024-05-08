@@ -37,7 +37,7 @@ TEST(test_vector, detach) {
   }
   {
     vector_cow::Vector<int> v{5, 6, 7, 8};
-    vector_cow::Vector<int> v_2(v);
+    vector_cow::Vector<int> v_2 = v;
     ASSERT_EQ(v.count(), 2);
     ASSERT_EQ(v_2.count(), 2);
     v_2.insert(v_2.begin(), 3);
