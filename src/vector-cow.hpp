@@ -248,6 +248,7 @@ public:
         throw;
       }
     } else if (count < size()) {
+      detach();
       for (size_t i = size(); i > count; --i) {
         data_->begin_[i].~T();
       }
