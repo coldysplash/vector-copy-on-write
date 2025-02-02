@@ -8,7 +8,7 @@ project(
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/cmake)
 
-find_program(CLANG_TIDY_EXE NAMES clang-tidy-16 clang-tidy)
+find_program(CLANG_TIDY_EXE NAMES clang-tidy-17 clang-tidy-17)
 if (NOT CLANG_TIDY_EXE)
   message(WARNING "clang-tidy not found")
 else()

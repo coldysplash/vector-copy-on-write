@@ -145,7 +145,7 @@ public:
       for (; current < size; ++current) {
         new (data_->begin_ + current) T(0);
       }
-    } catch (const std::exception &e) {
+    } catch (...) {
       for (size_t i = 0; i < current; ++i) {
         data_->begin_[i].~T();
         operator delete(data_->begin_);
@@ -161,7 +161,7 @@ public:
       for (; current < size; ++current) {
         new (data_->begin_ + current) T(value);
       }
-    } catch (const std::exception &e) {
+    } catch (...) {
       for (size_t i = 0; i < current; ++i) {
         data_->begin_[i].~T();
         operator delete(data_->begin_);
@@ -184,7 +184,7 @@ public:
       for (; current < size; ++current, ++first) {
         new (data_->begin_ + current) T(*first);
       }
-    } catch (const std::exception &e) {
+    } catch (...) {
       for (size_t i = 0; i < current; ++i) {
         data_->begin_[i].~T();
         operator delete(data_->begin_);
@@ -201,7 +201,7 @@ public:
         for (; current < size(); ++current) {
           new (tmp->begin_ + current) T(*(data_->begin_ + current));
         }
-      } catch (const std::exception &e) {
+      } catch (...) {
         for (size_t i = 0; i < current; ++i) {
           tmp->begin_[i].~T();
         }
@@ -223,7 +223,7 @@ public:
     }
     try {
       new (data_->begin_ + size()) T(value);
-    } catch (const std::exception &e) {
+    } catch (...) {
       data_->begin_[size()].~T();
       throw;
     }
@@ -240,7 +240,7 @@ public:
         for (; current < count; ++current) {
           new (data_->begin_ + current) T();
         }
-      } catch (const std::exception &e) {
+      } catch (...) {
         for (size_t i = 0; i < current; ++i) {
           data_->begin_[i].~T();
           operator delete(data_->begin_);
@@ -297,7 +297,7 @@ public:
         for (; current < size(); ++current) {
           new (tmp->begin_ + current) T(*(data_->begin_ + current));
         }
-      } catch (const std::exception &e) {
+      } catch (...) {
         for (size_t i = 0; i < current; ++i) {
           tmp->begin_[i].~T();
         }
@@ -422,7 +422,7 @@ private:
       for (; current < size(); ++current) {
         new (tmp->begin_ + current) T(*(data_->begin_ + current));
       }
-    } catch (const std::exception &e) {
+    } catch (...) {
       for (size_t i = 0; i < current; ++i) {
         tmp->begin_[i].~T();
       }
